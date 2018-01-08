@@ -13,7 +13,7 @@
       <Output TaskParameter="HaveAllBuildsPublished" PropertyName="HaveAllBuildsPublished" />
     </CheckIfAllBuildsHavePublished>
   </Target>
-
+  
   <Target Name="FinalizeBuild"
           Condition=" '$(HaveAllBuildsPublished)' == 'True' ">
     <CopyBlobsToLatest AccountName="$(ArtifactCloudDropAccountName)"
@@ -21,17 +21,20 @@
                        ContainerName="$(ArtifactContainerName)"
                        NugetVersion="$(FullNugetVersion)"
                        Channel="$(Channel)"
-                       CommitHash="$(CommitHash)" />
+                       CommitHash="$(CommitHash)"
+                       Coherent="$(Coherent)" />
 
     <CopyBlobsToLatest AccountName="$(ChecksumCloudDropAccountName)"
                        AccountKey="$(ChecksumCloudDropAccessToken)"
                        ContainerName="$(ChecksumContainerName)"
                        NugetVersion="$(FullNugetVersion)"
                        Channel="$(Channel)"
-                       CommitHash="$(CommitHash)" />
+                       CommitHash="$(CommitHash)"
+                       Coherent="$(Coherent)" />
 
     <UpdateVersionsRepo BranchName="$(BranchName)"
                         PackagesDirectory="$(PackagesDirectory)"
-                        GitHubPassword="$(GITHUB_PASSWORD)" />
+                        GitHubPassword="$(GITHUB_PASSWORD)"
+                        Condition=" '$(GITHUB_PASSWORD)' != '' " />
   </Target>
 </Project>

@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="ru" original="src/dotnet/CommonLocalizableStrings.resx">
+  <file datatype="xml" source-language="en" target-language="ru" original="../CommonLocalizableStrings.resx">
     <body>
-      <group id="src/dotnet/CommonLocalizableStrings.resx" />
       <trans-unit id="CouldNotFindAnyProjectInDirectory">
         <source>Could not find any project in `{0}`.</source>
         <target state="translated">Не удалось найти проекты в "{0}".</target>
@@ -96,11 +95,6 @@
       <trans-unit id="Application">
         <source>Application</source>
         <target state="translated">Приложение</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ReferenceDoesNotExist">
-        <source>Reference {0} does not exist.</source>
-        <target state="translated">Ссылка {0} не существует.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceAddedToTheProject">
@@ -368,11 +362,6 @@
         <target state="translated">Необходимо указать по крайней мере одну добавляемую ссылку.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ProjectAlreadyHasAReference">
-        <source>Project {0} already has a reference `{1}`.</source>
-        <target state="translated">Проект "{0}" уже содержит ссылку "{1}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PackageReferenceDoesNotExist">
         <source>Package reference `{0}` does not exist.</source>
         <target state="translated">Ссылка на пакет "{0}" не существует.</target>
@@ -485,7 +474,7 @@
       </trans-unit>
       <trans-unit id="NoReferencesFound">
         <source>There are no {0} references in project {1}. ;; {0} is the type of the item being requested (project, package, p2p) and {1} is the object operated on (a project file or a solution file). </source>
-        <target state="translated">В проекте {1} нет ссылок {0}. ;; {0} — тип запрашиваемого элемента (проект, пакет, p2p), а {1} — обрабатываемый объект (файл проекта или файл решения). </target>
+        <target state="translated">В проекте {1} нет ссылок {0}. ;; {0} — тип запрашиваемого элемента (проект, пакет, p2p), а {1} — обрабатываемый объект (файл проекта или файл решения). </target>
         <note />
       </trans-unit>
       <trans-unit id="NoProjectsFound">
@@ -605,9 +594,9 @@
       </trans-unit>
       <trans-unit id="ProjectCouldNotBeEvaluated">
         <source>Project `{0}` could not be evaluated. Evaluation failed with following error:
-{1}</source>
-        <target state="translated">Не удалось вычислить проект {0}. Сбой вычисления со следующей ошибкой:
-{1}</target>
+{1}.</source>
+        <target state="translated">Не удалось оценить проект "{0}". Произошел сбой оценки со следующей ошибкой:
+{1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedProjectType">
@@ -616,8 +605,8 @@
         <note />
       </trans-unit>
       <trans-unit id="InvalidSolutionFormatString">
-        <source>Invalid solution `{0}`. {1}</source>
-        <target state="translated">Решение "{0}" недопустимо. {1}</target>
+        <source>Invalid solution `{0}`. {1}.</source>
+        <target state="translated">Недопустимое решение "{0}". {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentsProjectDescription">
@@ -631,13 +620,58 @@
         <note />
       </trans-unit>
       <trans-unit id="CmdSlnFile">
-        <source>&lt;SLN_FILE&gt;</source>
-        <target state="translated">&lt;ФАЙЛ_SLN&gt;</target>
+        <source>SLN_FILE</source>
+        <target state="translated">SLN_FILE</target>
         <note />
       </trans-unit>
       <trans-unit id="CmdProjectFile">
-        <source>&lt;PROJECT&gt;</source>
-        <target state="translated">&lt;ПРОЕКТ&gt;</target>
+        <source>PROJECT</source>
+        <target state="translated">PROJECT</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidProjectWithExceptionMessage">
+        <source>Invalid project `{0}`. {1}.</source>
+        <target state="translated">Недопустимый проект "{0}". {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VerbosityOptionDescription">
+        <source>Set the verbosity level of the command. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic].</source>
+        <target state="translated">Установка уровня детализации для команды. Допустимые значения: q[uiet], m[inimal], n[ormal], d[etailed] и diag[nostic].</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FrameworkOptionDescription">
+        <source>Target framework to publish for. The target framework has to be specified in the project file.</source>
+        <target state="translated">Целевая платформа публикации. Целевая платформа должна быть указана в файле проекта.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuntimeOptionDescription">
+        <source>Publish the project for a given runtime. This is used when creating self-contained deployment. Default is to publish a framework-dependent app.</source>
+        <target state="translated">Публикация проекта для заданной среды выполнения. Используется при создании автономного развертывания. По умолчанию публикуется платформозависимое приложение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigurationOptionDescription">
+        <source>Configuration to use for building the project.  Default for most projects is  "Debug".</source>
+        <target state="translated">Конфигурация, используемая при сборке проекта. По умолчанию для большинства проектов используется "Отладка".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CmdVersionSuffixDescription">
+        <source>Defines the value for the $(VersionSuffix) property in the project.</source>
+        <target state="translated">Определяет значение для свойства $(VersionSuffix) в проекте.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShowHelpDescription">
+        <source>Show help information.</source>
+        <target state="translated">Показать справку.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoRestoreDescription">
+        <source>Does not do an implicit restore when executing the command.</source>
+        <target state="translated">Не выполняет неявное восстановление при выполнении команды.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProjectRemovedFromTheSolution">
+        <source>Project `{0}` removed from the solution.</source>
+        <target state="translated">Проект "{0}" удален из решения.</target>
         <note />
       </trans-unit>
     </body>

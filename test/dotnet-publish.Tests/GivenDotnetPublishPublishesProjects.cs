@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.DotNet.Cli.Utils;
 using Microsoft.DotNet.PlatformAbstractions;
+using Microsoft.DotNet.TestFramework;
 using Microsoft.DotNet.Tools.Test.Utilities;
 using Xunit;
 
@@ -27,21 +28,71 @@ namespace Microsoft.DotNet.Cli.Publish.Tests
 
             new RestoreCommand()
                 .WithWorkingDirectory(testProjectDirectory)
-                .Execute("/p:SkipInvalidConfigurations=true")
+                .Execute()
                 .Should().Pass();
 
             new PublishCommand()
                 .WithWorkingDirectory(testProjectDirectory)
-                .Execute("--framework netcoreapp2.0")
+                .Execute("--framework netcoreapp2.1")
                 .Should().Pass();
 
             var configuration = Environment.GetEnvironmentVariable("CONFIGURATION") ?? "Debug";
-            var outputDll = Path.Combine(testProjectDirectory, "bin", configuration, "netcoreapp2.0", "publish", $"{testAppName}.dll");
+            var outputDll = Path.Combine(testProjectDirectory, "bin", configuration, "netcoreapp2.1", "publish", $"{testAppName}.dll");
 
-            new TestCommand("dotnet")
+            new DotnetCommand()
                 .ExecuteWithCapturedOutput(outputDll)
                 .Should().Pass()
                          .And.HaveStdOutContaining("Hello World");
+        }
+
+        [Fact]
+        public void ItImplicitlyRestoresAProjectWhenPublishing()
+        {
+            var testAppName = "MSBuildTestApp";
+            var testInstance = TestAssets.Get(testAppName)
+                            .CreateInstance()
+                            .WithSourceFiles();
+
+            var testProjectDirectory = testInstance.Root.FullName;
+
+            new PublishCommand()
+                .WithWorkingDirectory(testProjectDirectory)
+                .Execute("--framework netcoreapp2.1")
+                .Should().Pass();
+        }
+
+        [Fact]
+        public void ItCanPublishAMultiTFMProjectWithImplicitRestore()
+        {
+            var testInstance = TestAssets.Get(
+                    TestAssetKinds.DesktopTestProjects,
+                    "NETFrameworkReferenceNETStandard20")
+                .CreateInstance()
+                .WithSourceFiles();
+
+            string projectDirectory = Path.Combine(testInstance.Root.FullName, "MultiTFMTestApp");
+
+            new PublishCommand()
+                .WithWorkingDirectory(projectDirectory)
+                .Execute("--framework netcoreapp2.1")
+                .Should().Pass();
+        }
+
+        [Fact]
+        public void ItDoesNotImplicitlyRestoreAProjectWhenPublishingWithTheNoRestoreOption()
+        {
+            var testAppName = "MSBuildTestApp";
+            var testInstance = TestAssets.Get(testAppName)
+                            .CreateInstance()
+                            .WithSourceFiles();
+
+            var testProjectDirectory = testInstance.Root.FullName;
+
+            new PublishCommand()
+                .WithWorkingDirectory(testProjectDirectory)
+                .ExecuteWithCapturedOutput("--framework netcoreapp2.1 --no-restore")
+                .Should().Fail()
+                .And.HaveStdOutContaining("project.assets.json");
         }
 
         [Fact]
@@ -59,30 +110,91 @@ namespace Microsoft.DotNet.Cli.Publish.Tests
             var rid = DotnetLegacyRuntimeIdentifiers.InferLegacyRestoreRuntimeIdentifier();
 
             new PublishCommand()
-                .WithFramework("netcoreapp2.0")
+                .WithFramework("netcoreapp2.1")
                 .WithRuntime(rid)
                 .WithWorkingDirectory(testProjectDirectory)
-                //Workaround for https://github.com/dotnet/cli/issues/4501
-                .WithEnvironmentVariable("SkipInvalidConfigurations", "true")
-                .Execute("/p:SkipInvalidConfigurations=true")
+                .Execute()
                 .Should().Pass();
 
             var configuration = Environment.GetEnvironmentVariable("CONFIGURATION") ?? "Debug";
 
             var outputProgram = testProjectDirectory
-                .GetDirectory("bin", configuration, "netcoreapp2.0", rid, "publish", $"{testAppName}{Constants.ExeSuffix}")
+                .GetDirectory("bin", configuration, "netcoreapp2.1", rid, "publish", $"{testAppName}{Constants.ExeSuffix}")
                 .FullName;
 
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                //Workaround for https://github.com/dotnet/corefx/issues/15516
-                Process.Start("chmod", $"u+x {outputProgram}").WaitForExit();
-            }
+            EnsureProgramIsRunnable(outputProgram);
 
             new TestCommand(outputProgram)
                 .ExecuteWithCapturedOutput()
                 .Should().Pass()
                      .And.HaveStdOutContaining("Hello World");
+        }
+
+        [Fact]
+        public void ItPublishesARidSpecificAppSettingSelfContainedToTrue()
+        {
+            var testAppName = "MSBuildTestApp";
+            var outputDirectory = PublishAppWithSelfContained(testAppName, true);
+
+            var outputProgram = Path.Combine(outputDirectory.FullName, $"{testAppName}{Constants.ExeSuffix}");
+
+            EnsureProgramIsRunnable(outputProgram);
+
+            new TestCommand(outputProgram)
+                .ExecuteWithCapturedOutput()
+                .Should().Pass()
+                     .And.HaveStdOutContaining("Hello World");
+        }
+
+        [Fact]
+        public void ItPublishesARidSpecificAppSettingSelfContainedToFalse()
+        {
+            var testAppName = "MSBuildTestApp";
+            var outputDirectory = PublishAppWithSelfContained(testAppName, false);
+
+            outputDirectory.Should().OnlyHaveFiles(new[] {
+                $"{testAppName}.dll",
+                $"{testAppName}.pdb",
+                $"{testAppName}.deps.json",
+                $"{testAppName}.runtimeconfig.json",
+            });
+
+            new DotnetCommand()
+                .ExecuteWithCapturedOutput(Path.Combine(outputDirectory.FullName, $"{testAppName}.dll"))
+                .Should().Pass()
+                     .And.HaveStdOutContaining("Hello World");
+        }
+
+        private DirectoryInfo PublishAppWithSelfContained(string testAppName, bool selfContained)
+        {
+            var testInstance = TestAssets.Get(testAppName)
+                .CreateInstance($"PublishesSelfContained{selfContained}")
+                .WithSourceFiles()
+                .WithRestoreFiles();
+
+            var testProjectDirectory = testInstance.Root;
+
+            var rid = DotnetLegacyRuntimeIdentifiers.InferLegacyRestoreRuntimeIdentifier();
+
+            new PublishCommand()
+                .WithRuntime(rid)
+                .WithSelfContained(selfContained)
+                .WithWorkingDirectory(testProjectDirectory)
+                .Execute()
+                .Should().Pass();
+
+            var configuration = Environment.GetEnvironmentVariable("CONFIGURATION") ?? "Debug";
+            return testProjectDirectory
+                    .GetDirectory("bin", configuration, "netcoreapp2.1", rid, "publish");
+        }
+
+        private static void EnsureProgramIsRunnable(string path)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                //Workaround for https://github.com/dotnet/corefx/issues/15516
+                Process.Start("chmod", $"u+x {path}").WaitForExit();
+            }
         }
 
         [Fact]
@@ -94,7 +206,7 @@ namespace Microsoft.DotNet.Cli.Publish.Tests
             string dir = "pkgs";
             string args = $"--packages {dir}";
 
-            string newArgs = $"console -o \"{rootPath}\"";
+            string newArgs = $"console -o \"{rootPath}\" --no-restore";
             new NewCommandShim()
                 .WithWorkingDirectory(rootPath)
                 .Execute(newArgs)
@@ -109,13 +221,13 @@ namespace Microsoft.DotNet.Cli.Publish.Tests
 
             new PublishCommand()
                 .WithWorkingDirectory(rootPath)
-                .ExecuteWithCapturedOutput()
+                .ExecuteWithCapturedOutput("--no-restore")
                 .Should().Pass();
 
             var configuration = Environment.GetEnvironmentVariable("CONFIGURATION") ?? "Debug";
 
             var outputProgram = rootDir
-                .GetDirectory("bin", configuration, "netcoreapp2.0", "publish", $"{rootDir.Name}.dll")
+                .GetDirectory("bin", configuration, "netcoreapp2.1", "publish", $"{rootDir.Name}.dll")
                 .FullName;
 
             new TestCommand(outputProgram)

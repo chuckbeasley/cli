@@ -7,51 +7,53 @@ In order to build .NET Command Line Interface, you need the following installed 
 
 ### For Windows
 
-1. CMake (available from https://cmake.org/) on the PATH.
-2. git (available from http://www.git-scm.com/) on the PATH.
+1. git (available from http://www.git-scm.com/) on the PATH.
 
 ### For Linux
 
-1. CMake (available from https://cmake.org/) is required to build the native host `corehost`. Make sure to add it to the PATH.
-2. git (available from http://www.git-scm.com/) on the PATH.
-3. clang (available from http://clang.llvm.org) on the PATH.
+1. git (available from http://www.git-scm.com/) on the PATH.
 
 ### For OS X
 
 1. Xcode
-2. CMake (available from https://cmake.org/) on the PATH.
-3. git (available from http://www.git-scm.com/) on the PATH.
-4. Install OpenSSL (a .NET Core requirement)
+2. git (available from http://www.git-scm.com/) on the PATH.
+3. Install OpenSSL (a .NET Core requirement)
+  - brew update
   - brew install openssl
-  - brew link --force openssl
+  - mkdir -p /usr/local/lib
+  - ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/
+  - ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
 
 ## Building/Running
 
 1. Run `build.cmd` or `build.sh` from the root depending on your OS. If you don't want to execute tests, run `build.cmd /t:Compile` or `./build.sh /t:Compile`. 
-  - To build the CLI in macOS Sierra, you need to set the DOTNET_RUNTIME_ID environment variable by running `export DOTNET_RUNTIME_ID=osx.10.11-x64`.
-2. Use `artifacts/{RID}/stage2/dotnet` to try out the `dotnet` command. You can also add `artifacts/{os}-{arch}/stage2` to the PATH if you want to use the build output when invoking `dotnet` from the current console.
+2. The CLI that is built (we call it stage 2) will be laid out in the `bin\2\{RID}\dotnet` folder.  You can run `dotnet.exe` or `dotnet` from that folder to try out the `dotnet` command.
 
 ## A simple test
 Using the `dotnet` built in the previous step:
 
 1. `cd {new directory}`
 2. `dotnet new`
-3. `dotnet restore3`
-4. `dotnet run3`
+3. `dotnet restore`
+4. `dotnet run`
 
 ## Running tests
 
-1. To run all tests invoke `build.cmd` or `build.sh` which will build the product and run the tests.
-2. To run a specific test, cd into that test's directory and execute `dotnet test`. If using this approach, make sure to add `artifacts/{RID}/stage2` to your `PATH` and set the `NUGET_PACKAGES` environment variable to point to the repo's `.nuget/packages` directory.
+1. To run all tests, invoke `build.cmd` or `build.sh` which will build the product and run the tests.
+2. To run a specific test project:
+    - Run `scripts\cli-test-env.bat` on Windows, or [source](https://en.wikipedia.org/wiki/Source_(command)) `scripts/cli-test-env.sh` on Linux or OS X.  This will add the stage 2 `dotnet` folder to your path and set up other environment variables which are used for running tests.
+    - `cd` into the test's directory
+    - Run `dotnet test`
+    - Refer to the command-line help for `dotnet test` if you want to run a specific test in the test project
 
-##Adding a Command
+## Adding a Command
 
 The dotnet CLI supports several models for adding new commands:
 
-0. In the CLI itself via `dotnet.dll`
-1. Through a `tool` NuGet package
-2. Through MSBuild tasks & targets in a NuGet package
-3. Via the user's `PATH`
+1. In the CLI itself via `dotnet.dll`
+2. Through a `tool` NuGet package
+3. Through MSBuild tasks & targets in a NuGet package
+4. Via the user's `PATH`
 
 ### Commands in dotnet.dll
 Developers are generally encouraged to avoid adding commands to `dotnet.dll` or the CLI installer directly. This is appropriate for very general commands such as restore, build, publish, test, and clean, but is generally too broad of a distribution mechanism for new commands. Please create an issue and engage the team if you feel there is a missing core command that you would like to add.

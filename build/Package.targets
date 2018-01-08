@@ -6,10 +6,12 @@
   <Import Project="$(MSBuildThisFileDirectory)/package/Installer.DEB.proj" />
   <Import Project="$(MSBuildThisFileDirectory)/package/Installer.MSI.targets" />
   <Import Project="$(MSBuildThisFileDirectory)/package/Installer.PKG.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)/package/Installer.RPM.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)/package/CopySandBoxPackageOut.targets" />
 
   <Target Name="GenerateInstallers"
           Condition=" '$(SkipBuildingInstallers)' != 'true' "
-          DependsOnTargets="Init;Layout;GeneratePkgs;GenerateDebs;GenerateMsis" />
+          DependsOnTargets="Prepare;Layout;GeneratePkgs;GenerateDebs;GenerateMsis;GenerateRpms" />
 
   <Target Name="Package"
           DependsOnTargets="BuildDotnetCliBuildFramework;
@@ -18,4 +20,8 @@
                             GenerateNugetPackages;
                             GenerateArchives;
                             GenerateInstallers"  />
+
+  <Target Name="GenerateInstallersAndCopyOutOfSandBox"
+          DependsOnTargets="SandBoxPrepare;Layout;GenerateDebs;GenerateRpms;CopySandBoxPackageOut" />
+
 </Project>

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation and contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.DotNet.Cli.Utils;
 using Microsoft.DotNet.VersionTools;
 using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.Dependencies;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -19,13 +19,12 @@ namespace Microsoft.DotNet.Scripts
 
         public static void Main(string[] args)
         {
-            DebugHelper.HandleDebugSwitch(ref args);
+            HandleDebugSwitch(ref args);
 
             bool onlyUpdate = args.Length > 0 && string.Equals("--Update", args[0], StringComparison.OrdinalIgnoreCase);
 
             List<BuildInfo> buildInfos = new List<BuildInfo>();
 
-            buildInfos.Add(GetBuildInfo("Roslyn", s_config.RoslynVersionFragment, fetchLatestReleaseFile: false));
             buildInfos.Add(GetBuildInfo("CoreSetup", s_config.CoreSetupVersionFragment, fetchLatestReleaseFile: false));
 
             IEnumerable<IDependencyUpdater> updaters = GetUpdaters();
@@ -81,7 +80,10 @@ namespace Microsoft.DotNet.Scripts
 
         private static IEnumerable<IDependencyUpdater> GetUpdaters()
         {
-            yield return CreateRegexUpdater(Path.Combine("build", "DependencyVersions.props"), "CLI_SharedFrameworkVersion", "Microsoft.NETCore.App");
+            string dependencyVersionsPath = Path.Combine("build", "DependencyVersions.props");
+            yield return CreateRegexUpdater(dependencyVersionsPath, "MicrosoftNETCoreAppPackageVersion", "Microsoft.NETCore.App");
+            yield return CreateRegexUpdater(dependencyVersionsPath, "MicrosoftDotNetPlatformAbstractionsPackageVersion", "Microsoft.DotNet.PlatformAbstractions");
+            yield return CreateRegexUpdater(dependencyVersionsPath, "MicrosoftExtensionsDependencyModelPackageVersion", "Microsoft.Extensions.DependencyModel");
         }
 
         private static IDependencyUpdater CreateRegexUpdater(string repoRelativePath, string propertyName, string packageId)
@@ -93,6 +95,22 @@ namespace Microsoft.DotNet.Scripts
                 Regex = new Regex($@"<{propertyName}>(?<version>.*)</{propertyName}>"),
                 VersionGroupName = "version"
             };
+        }
+
+        private static void HandleDebugSwitch(ref string[] args)
+        {
+            if (args.Length > 0 && string.Equals("--debug", args[0], StringComparison.OrdinalIgnoreCase))
+            {
+                args = args.Skip(1).ToArray();
+                WaitForDebugger();
+            }
+        }
+
+        private static void WaitForDebugger()
+        {
+            Console.WriteLine("Waiting for debugger to attach. Press ENTER to continue");
+            Console.WriteLine($"Process ID: {Process.GetCurrentProcess().Id}");
+            Console.ReadLine();
         }
     }
 }

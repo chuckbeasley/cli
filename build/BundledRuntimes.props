@@ -1,117 +1,112 @@
-<Project>
-    <PropertyGroup>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <CoreSetupRid>$(HostRid)</CoreSetupRid>
+    <CoreSetupRid Condition=" '$(HostOSName)' == 'win' or '$(HostOSName)' == 'osx' ">$(HostMonikerRid)</CoreSetupRid>
 
-      <!-- Downloaded Installers + Archives -->
-      <DownloadedSharedHostInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-host-$(ProductMonikerRid).$(SharedHostVersion)$(InstallerExtension)</DownloadedSharedHostInstallerFileName>
-      <DownloadedSharedHostInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(DownloadedSharedHostInstallerFileName)</DownloadedSharedHostInstallerFile>
+    <!-- only the runtime OSX .pkgs have a `-internal` suffix -->
+    <InstallerStartSuffix Condition="'$(HostOSName)' == 'osx'">-internal</InstallerStartSuffix>
+    
+    <!-- Downloaded Installers + Archives -->
+    <DownloadedRuntimeDepsInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-runtime-deps-$(SharedHostVersion)-$(CoreSetupRid)$(InstallerExtension)</DownloadedRuntimeDepsInstallerFileName>
+    <DownloadedRuntimeDepsInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(DownloadedRuntimeDepsInstallerFileName)</DownloadedRuntimeDepsInstallerFile>
 
-      <DownloadedHostFxrInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-hostfxr-$(ProductMonikerRid).$(HostFxrVersion)$(InstallerExtension)</DownloadedHostFxrInstallerFileName>
-      <DownloadedHostFxrInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(DownloadedHostFxrInstallerFileName)</DownloadedHostFxrInstallerFile>
+    <!-- Use the "x64" Rid when downloading Linux shared framework 'DEB' installer files. -->
+    <SharedFrameworkInstallerFileRid>$(CoreSetupRid)</SharedFrameworkInstallerFileRid>
+    <SharedFrameworkInstallerFileRid Condition=" '$(IsDebianBaseDistro)' == 'true' ">x64</SharedFrameworkInstallerFileRid>
+    
+    <DownloadedSharedHostInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-host$(InstallerStartSuffix)-$(SharedHostVersion)-$(SharedFrameworkInstallerFileRid)$(InstallerExtension)</DownloadedSharedHostInstallerFileName>
+    <DownloadedSharedHostInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(DownloadedSharedHostInstallerFileName)</DownloadedSharedHostInstallerFile>
 
-      <DownloadedSharedFrameworkInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-sharedframework-$(ProductMonikerRid).$(SharedFrameworkVersion)$(InstallerExtension)</DownloadedSharedFrameworkInstallerFileName>
-      <DownloadedSharedFrameworkInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(DownloadedSharedFrameworkInstallerFileName)</DownloadedSharedFrameworkInstallerFile>
+    <DownloadedHostFxrInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-hostfxr$(InstallerStartSuffix)-$(HostFxrVersion)-$(SharedFrameworkInstallerFileRid)$(InstallerExtension)</DownloadedHostFxrInstallerFileName>
+    <DownloadedHostFxrInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(DownloadedHostFxrInstallerFileName)</DownloadedHostFxrInstallerFile>
 
-      <CombinedFrameworkHostCompressedFileName>dotnet-$(ProductMonikerRid).$(SharedFrameworkVersion)$(ArchiveExtension)</CombinedFrameworkHostCompressedFileName>
-    </PropertyGroup>
+    <DownloadedSharedFrameworkInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-runtime$(InstallerStartSuffix)-$(MicrosoftNETCoreAppPackageVersion)-$(SharedFrameworkInstallerFileRid)$(InstallerExtension)</DownloadedSharedFrameworkInstallerFileName>
+    <DownloadedSharedFrameworkInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(DownloadedSharedFrameworkInstallerFileName)</DownloadedSharedFrameworkInstallerFile>
 
-    <!-- Additional Shared Framework to be installed -->
-    <PropertyGroup Condition=" '$(IncludeAdditionalSharedFrameworks)' == 'true' ">
-      <AdditionalCoreSetupChannel>preview</AdditionalCoreSetupChannel>
-      <AdditionalSharedFrameworkVersion>1.0.4</AdditionalSharedFrameworkVersion>
-      <AdditionalSharedHostVersion>1.0.1</AdditionalSharedHostVersion>
-      <AdditionalHostFxrVersion>1.0.1</AdditionalHostFxrVersion>
+    <!-- Use the portable "linux-x64" Rid when downloading Linux shared framework compressed file. -->
+    <SharedFrameworkRid>$(CoreSetupRid)</SharedFrameworkRid>
+    <SharedFrameworkRid Condition=" '$(UsePortableLinuxSharedFramework)' == 'true' ">linux-x64</SharedFrameworkRid>
+    <CombinedFrameworkHostCompressedFileName>dotnet-runtime-$(MicrosoftNETCoreAppPackageVersion)-$(SharedFrameworkRid)$(ArchiveExtension)</CombinedFrameworkHostCompressedFileName>
+  
+</PropertyGroup>
 
-      <!-- Additional Downloaded Installers + Archives -->
-      <AdditionalDownloadedSharedHostInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-host-$(ProductMonikerRid).$(AdditionalSharedHostVersion)$(InstallerExtension)</AdditionalDownloadedSharedHostInstallerFileName>
-      <AdditionalDownloadedSharedHostInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(AdditionalDownloadedSharedHostInstallerFileName)</AdditionalDownloadedSharedHostInstallerFile>
+  <PropertyGroup>
+    <CoreSetupRootUrl>$(CoreSetupBlobRootUrl)Runtime/</CoreSetupRootUrl>
+    <CoreSetupDownloadDirectory>$(IntermediateDirectory)/coreSetupDownload/$(MicrosoftNETCoreAppPackageVersion)</CoreSetupDownloadDirectory>
+    <CombinedSharedHostAndFrameworkArchive>$(CoreSetupDownloadDirectory)/combinedSharedHostAndFrameworkArchive$(ArchiveExtension)</CombinedSharedHostAndFrameworkArchive>
+  </PropertyGroup>
 
-      <AdditionalDownloadedHostFxrInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-hostfxr-$(ProductMonikerRid).$(AdditionalHostFxrVersion)$(InstallerExtension)</AdditionalDownloadedHostFxrInstallerFileName>
-      <AdditionalDownloadedHostFxrInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(AdditionalDownloadedHostFxrInstallerFileName)</AdditionalDownloadedHostFxrInstallerFile>
+  <PropertyGroup>
+    <AspNetCoreRuntimeInstallerBlobRootUrl>$(CoreSetupBlobRootUrl)aspnetcore/store/$(AspNetCoreRuntimePackageFolderName)</AspNetCoreRuntimeInstallerBlobRootUrl>
+    <AspNetCoreSharedRuntimeVersionFileName>runtime.version</AspNetCoreSharedRuntimeVersionFileName>
+    <AspNetCoreSharedRuntimeVersionFile Condition=" '$(AspNetCoreSharedRuntimeVersionFileName)' != '' ">$(PackagesDirectory)/$(AspNetCoreSharedRuntimeVersionFileName)</AspNetCoreSharedRuntimeVersionFile>
+    
+    <AspNetCoreRuntimeInstallerArchiveFileNameOSToken Condition=" '$(HostOSName)' == 'win' ">win7-$(Architecture)</AspNetCoreRuntimeInstallerArchiveFileNameOSToken>
+    <AspNetCoreRuntimeInstallerArchiveFileNameOSToken Condition=" '$(HostOSName)' == 'osx' ">$(HostOSName)-$(Architecture)</AspNetCoreRuntimeInstallerArchiveFileNameOSToken>
+    <AspNetCoreRuntimeInstallerArchiveFileNameOSToken Condition=" '$(AspNetCoreRuntimeInstallerArchiveFileNameOSToken)' == '' ">linux-$(Architecture)</AspNetCoreRuntimeInstallerArchiveFileNameOSToken>
+    <AspNetCoreRuntimeInstallerArchiveFileName>$(AspNetCoreRuntimePackageBrandName)-$(AspNetCoreRuntimePackageVersion)-$(AspNetCoreRuntimeInstallerArchiveFileNameOSToken)$(ArchiveExtension)</AspNetCoreRuntimeInstallerArchiveFileName>
+    <AspNetCoreRuntimeInstallerArchiveFile>$(PackagesDirectory)/$(AspNetCoreRuntimeInstallerArchiveFileName)</AspNetCoreRuntimeInstallerArchiveFile>
 
-      <AdditionalDownloadedSharedFrameworkInstallerFileName Condition=" '$(InstallerExtension)' != '' ">dotnet-sharedframework-$(ProductMonikerRid).$(AdditionalSharedFrameworkVersion)$(InstallerExtension)</AdditionalDownloadedSharedFrameworkInstallerFileName>
-      <AdditionalDownloadedSharedFrameworkInstallerFile Condition=" '$(InstallerExtension)' != '' ">$(PackagesDirectory)/$(AdditionalDownloadedSharedFrameworkInstallerFileName)</AdditionalDownloadedSharedFrameworkInstallerFile>
+    <AspNetCoreRuntimeInstallerWixLibFileName Condition=" '$(HostOSName)' == 'win' ">AspNetCorePackageStoreLib_$(Architecture)-$(AspNetCoreRuntimePackageVersion).wixlib</AspNetCoreRuntimeInstallerWixLibFileName>
+    <AspNetCoreRuntimeInstallerWixLibFile Condition=" '$(AspNetCoreRuntimeInstallerWixLibFileName)' != '' ">$(PackagesDirectory)/$(AspNetCoreRuntimeInstallerWixLibFileName)</AspNetCoreRuntimeInstallerWixLibFile>
+  </PropertyGroup>
 
-      <AdditionalCombinedFrameworkHostCompressedFileName>dotnet-$(ProductMonikerRid).$(AdditionalSharedFrameworkVersion)$(ArchiveExtension)</AdditionalCombinedFrameworkHostCompressedFileName>
-    </PropertyGroup>
+  <ItemGroup>
+    <_DownloadAndExtractItem Include="CombinedSharedHostAndFrameworkArchive"
+                             Condition="!Exists('$(CombinedSharedHostAndFrameworkArchive)')">
+      <Url>$(CoreSetupRootUrl)$(MicrosoftNETCoreAppPackageVersion)/$(CombinedFrameworkHostCompressedFileName)$(CoreSetupBlobAccessTokenParam)</Url>
+      <DownloadFileName>$(CombinedSharedHostAndFrameworkArchive)</DownloadFileName>
+      <ExtractDestination>$(SharedFrameworkPublishDirectory)</ExtractDestination>
+    </_DownloadAndExtractItem>
 
-    <PropertyGroup>
-      <CoreSetupChannel>master</CoreSetupChannel>
-      <CoreSetupBlobRootUrl Condition="'$(CoreSetupBlobRootUrl)' == ''">https://dotnetcli.azureedge.net/dotnet/</CoreSetupBlobRootUrl>
-      <CoreSetupBlobRootUrlWithChannel>$(CoreSetupBlobRootUrl)$(CoreSetupChannel)</CoreSetupBlobRootUrlWithChannel>
-      <SharedFrameworkArchiveBlobRootUrl>$(CoreSetupBlobRootUrlWithChannel)/Binaries/$(SharedFrameworkVersion)</SharedFrameworkArchiveBlobRootUrl>
-      <CoreSetupInstallerBlobRootUrl>$(CoreSetupBlobRootUrlWithChannel)/Installers</CoreSetupInstallerBlobRootUrl>
-      <CoreSetupDownloadDirectory>$(IntermediateDirectory)/coreSetupDownload/$(SharedFrameworkVersion)</CoreSetupDownloadDirectory>
-      <CombinedSharedHostAndFrameworkArchive>$(CoreSetupDownloadDirectory)/combinedSharedHostAndFrameworkArchive</CombinedSharedHostAndFrameworkArchive>
-    </PropertyGroup>
+    <_DownloadAndExtractItem Include="DownloadedRuntimeDepsInstallerFile"
+                         Condition="'$(IsDebianBaseDistro)' == 'true' And '$(SkipBuildingInstallers)' != 'true' And !Exists('$(DownloadedRuntimeDepsInstallerFile)') And '$(InstallerExtension)' != ''">
+      <Url>$(CoreSetupRootUrl)$(MicrosoftNETCoreAppPackageVersion)/$(DownloadedRuntimeDepsInstallerFileName)$(CoreSetupBlobAccessTokenParam)</Url>
+      <DownloadFileName>$(DownloadedRuntimeDepsInstallerFile)</DownloadFileName>
+      <ExtractDestination></ExtractDestination>
+    </_DownloadAndExtractItem>
+    
+    <_DownloadAndExtractItem Include="DownloadedSharedFrameworkInstallerFile"
+                             Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(DownloadedSharedFrameworkInstallerFile)') And '$(InstallerExtension)' != ''">
+      <Url>$(CoreSetupRootUrl)$(MicrosoftNETCoreAppPackageVersion)/$(DownloadedSharedFrameworkInstallerFileName)$(CoreSetupBlobAccessTokenParam)</Url>
+      <DownloadFileName>$(DownloadedSharedFrameworkInstallerFile)</DownloadFileName>
+      <ExtractDestination></ExtractDestination>
+    </_DownloadAndExtractItem>
 
-    <ItemGroup>
-      <_DownloadAndExtractItem Include="CombinedSharedHostAndFrameworkArchive"
-                               Condition="!Exists('$(CombinedSharedHostAndFrameworkArchive)')">
-        <Url>$(SharedFrameworkArchiveBlobRootUrl)/$(CombinedFrameworkHostCompressedFileName)</Url>
-        <DownloadFileName>$(CombinedSharedHostAndFrameworkArchive)</DownloadFileName>
-        <ExtractDestination>$(SharedFrameworkPublishDirectory)</ExtractDestination>
-      </_DownloadAndExtractItem>
+    <_DownloadAndExtractItem Include="DownloadedSharedHostInstallerFile"
+                             Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(DownloadedSharedHostInstallerFile)') And '$(InstallerExtension)' != ''">
+      <Url>$(CoreSetupRootUrl)$(SharedHostVersion)/$(DownloadedSharedHostInstallerFileName)$(CoreSetupBlobAccessTokenParam)</Url>
+      <DownloadFileName>$(DownloadedSharedHostInstallerFile)</DownloadFileName>
+      <ExtractDestination></ExtractDestination>
+    </_DownloadAndExtractItem>
 
-      <_DownloadAndExtractItem Include="DownloadedSharedFrameworkInstallerFile"
-                               Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(DownloadedSharedFrameworkInstallerFile)') And '$(InstallerExtension)' != ''">
-        <Url>$(CoreSetupInstallerBlobRootUrl)/$(SharedFrameworkVersion)/$(DownloadedSharedFrameworkInstallerFileName)</Url>
-        <DownloadFileName>$(DownloadedSharedFrameworkInstallerFile)</DownloadFileName>
-        <ExtractDestination></ExtractDestination>
-      </_DownloadAndExtractItem>
+    <_DownloadAndExtractItem Include="DownloadedHostFxrInstallerFile"
+                             Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(DownloadedHostFxrInstallerFile)') And '$(InstallerExtension)' != ''">
+      <Url>$(CoreSetupRootUrl)$(HostFxrVersion)/$(DownloadedHostFxrInstallerFileName)$(CoreSetupBlobAccessTokenParam)</Url>
+      <DownloadFileName>$(DownloadedHostFxrInstallerFile)</DownloadFileName>
+      <ExtractDestination></ExtractDestination>
+    </_DownloadAndExtractItem>
 
-      <_DownloadAndExtractItem Include="DownloadedSharedHostInstallerFile"
-                               Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(DownloadedSharedHostInstallerFile)') And '$(InstallerExtension)' != ''">
-        <Url>$(CoreSetupInstallerBlobRootUrl)/$(SharedHostVersion)/$(DownloadedSharedHostInstallerFileName)</Url>
-        <DownloadFileName>$(DownloadedSharedHostInstallerFile)</DownloadFileName>
-        <ExtractDestintation></ExtractDestintation>
-      </_DownloadAndExtractItem>
+  <_DownloadAndExtractItem Include="AspNetCoreRuntimeInstallerWixLibFile"
+                           Condition=" '$(AspNetCoreRuntimeInstallerWixLibFile)' != '' And !Exists('$(AspNetCoreRuntimeInstallerWixLibFile)')">
+      <Url>$(AspNetCoreRuntimeInstallerBlobRootUrl)/$(AspNetCoreRuntimeInstallerWixLibFileName)$(CoreSetupBlobAccessTokenParam)</Url>
+      <DownloadFileName>$(AspNetCoreRuntimeInstallerWixLibFile)</DownloadFileName>
+      <ExtractDestination></ExtractDestination>
+  </_DownloadAndExtractItem>
 
-      <_DownloadAndExtractItem Include="DownloadedHostFxrInstallerFile"
-                               Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(DownloadedHostFxrInstallerFile)') And '$(InstallerExtension)' != ''">
-        <Url>$(CoreSetupInstallerBlobRootUrl)/$(HostFxrVersion)/$(DownloadedHostFxrInstallerFileName)</Url>
-        <DownloadFileName>$(DownloadedHostFxrInstallerFile)</DownloadFileName>
-        <ExtractDestintation></ExtractDestintation>
-      </_DownloadAndExtractItem>
-    </ItemGroup>
+  <_DownloadAndExtractItem Include="AspNetCoreRuntimeInstallerArchiveFile"
+                           Condition="!Exists('$(AspNetCoreRuntimeInstallerArchiveFile)')">
+      <Url>$(AspNetCoreRuntimeInstallerBlobRootUrl)/$(AspNetCoreRuntimeInstallerArchiveFileName)$(CoreSetupBlobAccessTokenParam)</Url>
+      <DownloadFileName>$(AspNetCoreRuntimeInstallerArchiveFile)</DownloadFileName>
+      <ExtractDestination>$(AspNetRuntimePackageStorePublishDirectory)</ExtractDestination>
+  </_DownloadAndExtractItem>
 
-    <!-- Additional Shared Framework to be installed -->
-    <PropertyGroup Condition=" '$(IncludeAdditionalSharedFrameworks)' != 'false' ">
-      <AdditionalCoreSetupBlobRootUrlWithChannel>$(CoreSetupBlobRootUrl)$(AdditionalCoreSetupChannel)</AdditionalCoreSetupBlobRootUrlWithChannel>
-      <AdditionalSharedFrameworkArchiveBlobRootUrl>$(AdditionalCoreSetupBlobRootUrlWithChannel)/Binaries/$(AdditionalSharedFrameworkVersion)</AdditionalSharedFrameworkArchiveBlobRootUrl>
-      <AdditionalCoreSetupInstallerBlobRootUrl>$(AdditionalCoreSetupBlobRootUrlWithChannel)/Installers</AdditionalCoreSetupInstallerBlobRootUrl>
-      <AdditionalCoreSetupDownloadDirectory>$(IntermediateDirectory)/coreSetupDownload/$(AdditionalSharedFrameworkVersion)</AdditionalCoreSetupDownloadDirectory>
-      <AdditionalCombinedSharedHostAndFrameworkArchive>$(AdditionalCoreSetupDownloadDirectory)/combinedSharedHostAndFrameworkArchive</AdditionalCombinedSharedHostAndFrameworkArchive>
-    </PropertyGroup>
+  <_DownloadAndExtractItem Include="AspNetCoreSharedRuntimeVersionFile"
+                           Condition="!Exists('$(AspNetCoreSharedRuntimeVersionFile)')">
+      <Url>$(AspNetCoreRuntimeInstallerBlobRootUrl)/$(AspNetCoreSharedRuntimeVersionFileName)$(CoreSetupBlobAccessTokenParam)</Url>
+      <DownloadFileName>$(AspNetCoreSharedRuntimeVersionFile)</DownloadFileName>
+      <ExtractDestination></ExtractDestination>
+    </_DownloadAndExtractItem>
 
-    <ItemGroup Condition=" '$(IncludeAdditionalSharedFrameworks)' != 'false' ">
-      <_DownloadAndExtractItem Include="AdditionalCombinedSharedHostAndFrameworkArchive"
-                               Condition="!Exists('$(AdditionalCombinedSharedHostAndFrameworkArchive)')">
-        <Url>$(AdditionalSharedFrameworkArchiveBlobRootUrl)/$(AdditionalCombinedFrameworkHostCompressedFileName)</Url>
-        <DownloadFileName>$(AdditionalCombinedSharedHostAndFrameworkArchive)</DownloadFileName>
-        <ExtractDestination>$(SharedFrameworkPublishDirectory)</ExtractDestination>
-        <!-- don't overwrite the destination because both shared fx's need to be combined -->
-        <OverwriteDestination>False</OverwriteDestination>
-      </_DownloadAndExtractItem>
-
-      <_DownloadAndExtractItem Include="AdditionalDownloadedSharedFrameworkInstallerFile"
-                               Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(AdditionalDownloadedSharedFrameworkInstallerFile)') And '$(InstallerExtension)' != ''">
-        <Url>$(AdditionalCoreSetupInstallerBlobRootUrl)/$(AdditionalSharedFrameworkVersion)/$(AdditionalDownloadedSharedFrameworkInstallerFileName)</Url>
-        <DownloadFileName>$(AdditionalDownloadedSharedFrameworkInstallerFile)</DownloadFileName>
-        <ExtractDestination></ExtractDestination>
-      </_DownloadAndExtractItem>
-
-      <_DownloadAndExtractItem Include="AdditionalDownloadedSharedHostInstallerFile"
-                               Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(AdditionalDownloadedSharedHostInstallerFile)') And '$(InstallerExtension)' != ''">
-        <Url>$(AdditionalCoreSetupInstallerBlobRootUrl)/$(AdditionalSharedHostVersion)/$(AdditionalDownloadedSharedHostInstallerFileName)</Url>
-        <DownloadFileName>$(AdditionalDownloadedSharedHostInstallerFile)</DownloadFileName>
-        <ExtractDestintation></ExtractDestintation>
-      </_DownloadAndExtractItem>
-
-      <_DownloadAndExtractItem Include="AdditionalDownloadedHostFxrInstallerFile"
-                               Condition="'$(SkipBuildingInstallers)' != 'true' And !Exists('$(AdditionalDownloadedHostFxrInstallerFile)') And '$(InstallerExtension)' != ''">
-        <Url>$(AdditionalCoreSetupInstallerBlobRootUrl)/$(AdditionalHostFxrVersion)/$(AdditionalDownloadedHostFxrInstallerFileName)</Url>
-        <DownloadFileName>$(AdditionalDownloadedHostFxrInstallerFile)</DownloadFileName>
-        <ExtractDestintation></ExtractDestintation>
-      </_DownloadAndExtractItem>
-    </ItemGroup>
+  </ItemGroup>
 </Project>

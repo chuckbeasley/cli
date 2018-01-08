@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="ko" original="src/Microsoft.DotNet.Cli.Utils/LocalizableStrings.resx">
+  <file datatype="xml" source-language="en" target-language="ko" original="../LocalizableStrings.resx">
     <body>
-      <group id="src/Microsoft.DotNet.Cli.Utils/LocalizableStrings.resx" />
       <trans-unit id="MalformedText">
         <source>Malformed command text '{0}'</source>
         <target state="translated">형식이 잘못된 명령 텍스트 '{0}'</target>
@@ -192,7 +191,7 @@
       </trans-unit>
       <trans-unit id="WriteLineForwarderSetPreviously">
         <source>WriteLine forwarder set previously</source>
-        <target state="translated">WriteLine 전달자가 전에 설정됨</target>
+        <target state="translated">WriteLine 전달자가 이전에 설정됨</target>
         <note />
       </trans-unit>
       <trans-unit id="AlreadyCapturingStream">
@@ -213,6 +212,26 @@
       <trans-unit id="UnableToInvokeMemberNameAfterCommand">
         <source>Unable to invoke {0} after the command has been run</source>
         <target state="translated">명령이 실행된 후 {0}을(를) 호출할 수 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IgnoringPreferCLIRuntimeFile">
+        <source>{0}: Ignoring prefercliruntime file as the tool target framework ({1}) has a different major version than the current CLI runtime ({2})</source>
+        <target state="translated">{0}: 도구 대상 프레임워크({1})에 현재 CLI 런타임({2})과 다른 주 버전이 있으므로 prefercliruntime 파일 무시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CouldNotFindToolRuntimeConfigFile">
+        <source>{0}: Could not find runtimeconfig.json file for tool {1}</source>
+        <target state="translated">{0}: 도구 {1}에 대한 runtimeconfig.json 파일을 찾을 수 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DepsJsonGeneratorProjectNotSet">
+        <source>Unable to find deps.json generator project.</source>
+        <target state="translated">deps.json 생성기 프로젝트를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CommandAssembliesNotFound">
+        <source>The command executable for "{0}" was not found. The project may not have been restored or restore failed - run `dotnet restore`</source>
+        <target state="translated">"{0}"에 대해 실행 가능한 명령을 찾지 못했습니다. 프로젝트가 복원되지 않았거나 복원이 실패했을 수 있습니다. 'dotnet restore'를 실행하세요.</target>
         <note />
       </trans-unit>
     </body>

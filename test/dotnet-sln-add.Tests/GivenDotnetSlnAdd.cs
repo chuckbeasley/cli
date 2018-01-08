@@ -4,10 +4,12 @@
 using FluentAssertions;
 using Microsoft.Build.Construction;
 using Microsoft.DotNet.Cli.Sln.Internal;
+using Microsoft.DotNet.Tools;
 using Microsoft.DotNet.Tools.Test.Utilities;
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,19 +17,30 @@ namespace Microsoft.DotNet.Cli.Sln.Add.Tests
 {
     public class GivenDotnetSlnAdd : TestBase
     {
-        private string HelpText = @".NET Add project(s) to a solution file Command
-
-Usage: dotnet sln <SLN_FILE> add [options] [args]
+        private string HelpText = @"Usage: dotnet sln <SLN_FILE> add [options] <args>
 
 Arguments:
-  <SLN_FILE>  Solution file to operate on. If not specified, the command will search the current directory for one.
+  <SLN_FILE>   Solution file to operate on. If not specified, the command will search the current directory for one.
+  <args>       Add one or more specified projects to the solution.
 
 Options:
-  -h|--help  Show help information
-
-Additional Arguments:
- Add one or more specified projects to the solution.
+  -h, --help   Show help information.
 ";
+
+        private const string SlnCommandHelpText = @"Usage: dotnet sln [options] <SLN_FILE> [command]
+
+Arguments:
+  <SLN_FILE>   Solution file to operate on. If not specified, the command will search the current directory for one.
+
+Options:
+  -h, --help   Show help information.
+
+Commands:
+  add <args>      .NET Add project(s) to a solution file Command
+  list            .NET List project(s) in a solution file Command
+  remove <args>   .NET Remove project(s) from a solution file Command
+";
+
         private ITestOutputHelper _output;
 
         public GivenDotnetSlnAdd(ITestOutputHelper output)
@@ -183,7 +196,7 @@ EndGlobal
             var cmd = new DotnetCommand()
                 .ExecuteWithCapturedOutput($"sln add {helpArg}");
             cmd.Should().Pass();
-            cmd.StdOut.Should().BeVisuallyEquivalentTo(HelpText);
+            cmd.StdOut.Should().BeVisuallyEquivalentToIfNotLocalized(HelpText);
         }
 
         [Theory]
@@ -194,7 +207,8 @@ EndGlobal
             var cmd = new DotnetCommand()
                 .ExecuteWithCapturedOutput($"sln {commandName}");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be("Required command was not provided.");
+            cmd.StdErr.Should().Be(CommonLocalizableStrings.RequiredCommandNotPassed);
+            cmd.StdOut.Should().BeVisuallyEquivalentToIfNotLocalized(SlnCommandHelpText);
         }
 
         [Fact]
@@ -203,8 +217,9 @@ EndGlobal
             var cmd = new DotnetCommand()
                 .ExecuteWithCapturedOutput("sln one.sln two.sln three.sln add");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be("Unrecognized command or argument 'two.sln'");
-            cmd.StdOut.Should().Be("Specify --help for a list of available options and commands.");
+            cmd.StdErr.Should().BeVisuallyEquivalentTo($@"{string.Format(CommandLine.LocalizableStrings.UnrecognizedCommandOrArgument, "two.sln")}
+{string.Format(CommandLine.LocalizableStrings.UnrecognizedCommandOrArgument, "three.sln")}
+{CommonLocalizableStrings.SpecifyAtLeastOneProjectToAdd}");
         }
 
         [Theory]
@@ -218,8 +233,8 @@ EndGlobal
             var cmd = new DotnetCommand()
                 .ExecuteWithCapturedOutput($"sln {solutionName} add p.csproj");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be($"Could not find solution or directory `{solutionName}`.");
-            cmd.StdOut.Should().BeVisuallyEquivalentTo(HelpText);
+            cmd.StdErr.Should().Be(string.Format(CommonLocalizableStrings.CouldNotFindSolutionOrDirectory, solutionName));
+            cmd.StdOut.Should().BeVisuallyEquivalentToIfNotLocalized(HelpText);
         }
 
         [Fact]
@@ -237,8 +252,8 @@ EndGlobal
                 .WithWorkingDirectory(projectDirectory)
                 .ExecuteWithCapturedOutput($"sln InvalidSolution.sln add {projectToAdd}");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be("Invalid solution `InvalidSolution.sln`. Invalid format in line 1: File header is missing");
-            cmd.StdOut.Should().BeVisuallyEquivalentTo(HelpText);
+            cmd.StdErr.Should().Be(string.Format(CommonLocalizableStrings.InvalidSolutionFormatString, "InvalidSolution.sln", LocalizableStrings.FileHeaderMissingError));
+            cmd.StdOut.Should().BeVisuallyEquivalentToIfNotLocalized(HelpText);
         }
 
         [Fact]
@@ -257,8 +272,8 @@ EndGlobal
                 .WithWorkingDirectory(projectDirectory)
                 .ExecuteWithCapturedOutput($"sln add {projectToAdd}");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be($"Invalid solution `{solutionPath}`. Invalid format in line 1: File header is missing");
-            cmd.StdOut.Should().BeVisuallyEquivalentTo(HelpText);
+            cmd.StdErr.Should().Be(string.Format(CommonLocalizableStrings.InvalidSolutionFormatString, solutionPath, LocalizableStrings.FileHeaderMissingError));
+            cmd.StdOut.Should().BeVisuallyEquivalentToIfNotLocalized(HelpText);
         }
 
         [Fact]
@@ -275,14 +290,14 @@ EndGlobal
                 .WithWorkingDirectory(projectDirectory)
                 .ExecuteWithCapturedOutput(@"sln App.sln add");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be("You must specify at least one project to add.");
+            cmd.StdErr.Should().Be(CommonLocalizableStrings.SpecifyAtLeastOneProjectToAdd);
 
             _output.WriteLine("[STD OUT]");
             _output.WriteLine(cmd.StdOut);
             _output.WriteLine("[HelpText]");
             _output.WriteLine(HelpText);
 
-            cmd.StdOut.Should().BeVisuallyEquivalentTo(HelpText);
+            cmd.StdOut.Should().BeVisuallyEquivalentToIfNotLocalized(HelpText);
         }
 
         [Fact]
@@ -300,8 +315,8 @@ EndGlobal
                 .WithWorkingDirectory(solutionPath)
                 .ExecuteWithCapturedOutput(@"sln add App.csproj");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be($"Specified solution file {solutionPath + Path.DirectorySeparatorChar} does not exist, or there is no solution file in the directory.");
-            cmd.StdOut.Should().BeVisuallyEquivalentTo(HelpText);
+            cmd.StdErr.Should().Be(string.Format(CommonLocalizableStrings.SolutionDoesNotExist, solutionPath + Path.DirectorySeparatorChar));
+            cmd.StdOut.Should().BeVisuallyEquivalentToIfNotLocalized(HelpText);
         }
 
         [Fact]
@@ -319,8 +334,8 @@ EndGlobal
                 .WithWorkingDirectory(projectDirectory)
                 .ExecuteWithCapturedOutput($"sln add {projectToAdd}");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be($"Found more than one solution file in {projectDirectory + Path.DirectorySeparatorChar}. Please specify which one to use.");
-            cmd.StdOut.Should().BeVisuallyEquivalentTo(HelpText);
+            cmd.StdErr.Should().Be(string.Format(CommonLocalizableStrings.MoreThanOneSolutionInDirectory, projectDirectory + Path.DirectorySeparatorChar));
+            cmd.StdOut.Should().BeVisuallyEquivalentToIfNotLocalized(HelpText);
         }
 
         [Fact]
@@ -343,6 +358,81 @@ EndGlobal
             var expectedSlnContents = GetExpectedSlnContents(slnPath, ExpectedSlnFileAfterAddingNestedProj);
             File.ReadAllText(slnPath)
                 .Should().BeVisuallyEquivalentTo(expectedSlnContents);
+        }
+
+        [Fact]
+        public void WhenDirectoryContainingProjectIsGivenProjectIsAdded()
+        {
+            var projectDirectory = TestAssets
+                .Get("TestAppWithSlnAndCsprojFiles")
+                .CreateInstance()
+                .WithSourceFiles()
+                .Root
+                .FullName;
+
+            var cmd = new DotnetCommand()
+                .WithWorkingDirectory(projectDirectory)
+                .ExecuteWithCapturedOutput("sln add Lib");
+            cmd.Should().Pass();
+
+            var slnPath = Path.Combine(projectDirectory, "App.sln");
+            var expectedSlnContents = GetExpectedSlnContents(slnPath, ExpectedSlnFileAfterAddingLibProj);
+            File.ReadAllText(slnPath)
+                .Should().BeVisuallyEquivalentTo(expectedSlnContents);
+        }
+
+        [Fact]
+        public void WhenDirectoryContainsNoProjectsItCancelsWholeOperation()
+        {
+            var projectDirectory = TestAssets
+                .Get("TestAppWithSlnAndCsprojFiles")
+                .CreateInstance()
+                .WithSourceFiles()
+                .Root
+                .FullName;
+
+            var slnFullPath = Path.Combine(projectDirectory, "App.sln");
+            var contentBefore = File.ReadAllText(slnFullPath);
+            var directoryToAdd = "Empty";
+
+            var cmd = new DotnetCommand()
+                .WithWorkingDirectory(projectDirectory)
+                .ExecuteWithCapturedOutput($"sln add {directoryToAdd}");
+            cmd.Should().Fail();
+            cmd.StdErr.Should().Be(
+                string.Format(
+                    CommonLocalizableStrings.CouldNotFindAnyProjectInDirectory,
+                    Path.Combine(projectDirectory, directoryToAdd)));
+
+            File.ReadAllText(slnFullPath)
+                .Should().BeVisuallyEquivalentTo(contentBefore);
+        }
+
+        [Fact]
+        public void WhenDirectoryContainsMultipleProjectsItCancelsWholeOperation()
+        {
+            var projectDirectory = TestAssets
+                .Get("TestAppWithSlnAndCsprojFiles")
+                .CreateInstance()
+                .WithSourceFiles()
+                .Root
+                .FullName;
+
+            var slnFullPath = Path.Combine(projectDirectory, "App.sln");
+            var contentBefore = File.ReadAllText(slnFullPath);
+            var directoryToAdd = "Multiple";
+
+            var cmd = new DotnetCommand()
+                .WithWorkingDirectory(projectDirectory)
+                .ExecuteWithCapturedOutput($"sln add {directoryToAdd}");
+            cmd.Should().Fail();
+            cmd.StdErr.Should().Be(
+                string.Format(
+                    CommonLocalizableStrings.MoreThanOneProjectInDirectory,
+                    Path.Combine(projectDirectory, directoryToAdd)));
+
+            File.ReadAllText(slnFullPath)
+                .Should().BeVisuallyEquivalentTo(contentBefore);
         }
 
         [Fact]
@@ -461,8 +551,64 @@ EndGlobal
                 .WithWorkingDirectory(projectDirectory)
                 .ExecuteWithCapturedOutput($"sln App.sln add {projectToAdd}");
             cmd.Should().Pass();
-            cmd.StdOut.Should().Be($"Project `{projectPath}` added to the solution.");
+            cmd.StdOut.Should().Be(string.Format(CommonLocalizableStrings.ProjectAddedToTheSolution, projectPath));
             cmd.StdErr.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void WhenProjectIsAddedSolutionHasUTF8BOM()
+        {
+            var projectDirectory = TestAssets
+                .Get("TestAppWithEmptySln")
+                .CreateInstance()
+                .WithSourceFiles()
+                .Root
+                .FullName;
+
+            var projectToAdd = "Lib/Lib.csproj";
+            var projectPath = Path.Combine("Lib", "Lib.csproj");
+            var cmd = new DotnetCommand()
+                .WithWorkingDirectory(projectDirectory)
+                .ExecuteWithCapturedOutput($"sln App.sln add {projectToAdd}");
+            cmd.Should().Pass();
+
+            var preamble = Encoding.UTF8.GetPreamble();
+            preamble.Length.Should().Be(3);
+            using (var stream = new FileStream(Path.Combine(projectDirectory, "App.sln"), FileMode.Open))
+            {
+                var bytes = new byte[preamble.Length];
+                stream.Read(bytes, 0, bytes.Length);
+                bytes.Should().BeEquivalentTo(preamble);
+            }
+        }
+
+        [Theory]
+        [InlineData("TestAppWithSlnAndCsprojFiles")]
+        [InlineData("TestAppWithSlnAndCsprojProjectGuidFiles")]
+        [InlineData("TestAppWithEmptySln")]
+        public void WhenInvalidProjectIsPassedItDoesNotGetAdded(string testAsset)
+        {
+            var projectDirectory = TestAssets
+                .Get(testAsset)
+                .CreateInstance()
+                .WithSourceFiles()
+                .Root
+                .FullName;
+
+            var projectToAdd = "Lib/Library.cs";
+            var projectPath = Path.Combine("Lib", "Library.cs");
+            var slnFile = SlnFile.Read(Path.Combine(projectDirectory, "App.sln"));
+            var expectedNumberOfProjects = slnFile.Projects.Count();
+
+            var cmd = new DotnetCommand()
+                .WithWorkingDirectory(projectDirectory)
+                .ExecuteWithCapturedOutput($"sln App.sln add {projectToAdd}");
+            cmd.Should().Pass();
+            cmd.StdOut.Should().BeEmpty();
+            cmd.StdErr.Should().Match(string.Format(CommonLocalizableStrings.InvalidProjectWithExceptionMessage, '*', '*'));
+
+            slnFile = SlnFile.Read(Path.Combine(projectDirectory, "App.sln"));
+            slnFile.Projects.Count().Should().Be(expectedNumberOfProjects);
         }
 
         [Theory]
@@ -532,7 +678,7 @@ EndGlobal
                 .WithWorkingDirectory(projectDirectory)
                 .ExecuteWithCapturedOutput($"sln App.sln add {projectToAdd}");
             cmd.Should().Pass();
-            cmd.StdOut.Should().Be($"Solution {solutionPath} already contains project {projectToAdd}.");
+            cmd.StdOut.Should().Be(string.Format(CommonLocalizableStrings.SolutionAlreadyContainsProject, solutionPath, projectToAdd));
             cmd.StdErr.Should().BeEmpty();
         }
 
@@ -554,7 +700,7 @@ EndGlobal
                 .WithWorkingDirectory(projectDirectory)
                 .ExecuteWithCapturedOutput($"sln App.sln add {projectToAdd} idonotexist.csproj");
             cmd.Should().Fail();
-            cmd.StdErr.Should().Be("Project `idonotexist.csproj` does not exist.");
+            cmd.StdErr.Should().Be(string.Format(CommonLocalizableStrings.CouldNotFindProjectOrDirectory, "idonotexist.csproj"));
 
             File.ReadAllText(slnFullPath)
                 .Should().BeVisuallyEquivalentTo(contentBefore);
@@ -610,7 +756,7 @@ EndGlobal
                 .WithWorkingDirectory(projectDirectory)
                 .ExecuteWithCapturedOutput($"sln App.sln add {projectToAdd}");
             cmd.Should().Pass();
-            cmd.StdOut.Should().Be($"Project `{projectToAdd}` added to the solution.");
+            cmd.StdOut.Should().Be(string.Format(CommonLocalizableStrings.ProjectAddedToTheSolution, projectToAdd));
             cmd.StdErr.Should().BeEmpty();
 
             var slnFile = SlnFile.Read(Path.Combine(projectDirectory, "App.sln"));

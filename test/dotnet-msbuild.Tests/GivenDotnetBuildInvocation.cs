@@ -10,32 +10,61 @@ namespace Microsoft.DotNet.Cli.MSBuild.Tests
     public class GivenDotnetBuildInvocation
     {
         const string ExpectedPrefix = "exec <msbuildpath> /m /v:m";
-        const string ExpectedSuffix = "/clp:Summary";
 
         [Theory]
         [InlineData(new string[] { }, "/t:Build")]
         [InlineData(new string[] { "-o", "foo" }, "/t:Build /p:OutputPath=foo")]
+        [InlineData(new string[] { "-p:Verbosity=diag" }, "/t:Build -p:Verbosity=diag")]
         [InlineData(new string[] { "--output", "foo" }, "/t:Build /p:OutputPath=foo")]
         [InlineData(new string[] { "-o", "foo1 foo2" }, "/t:Build \"/p:OutputPath=foo1 foo2\"")]
         [InlineData(new string[] { "--no-incremental" }, "/t:Rebuild")]
-        [InlineData(new string[] { "-f", "framework" }, "/t:Build /p:TargetFramework=framework")]
-        [InlineData(new string[] { "--framework", "framework" }, "/t:Build /p:TargetFramework=framework")]
-        [InlineData(new string[] { "-r", "runtime" }, "/t:Build /p:RuntimeIdentifier=runtime")]
-        [InlineData(new string[] { "--runtime", "runtime" }, "/t:Build /p:RuntimeIdentifier=runtime")]
-        [InlineData(new string[] { "-c", "configuration" }, "/t:Build /p:Configuration=configuration")]
-        [InlineData(new string[] { "--configuration", "configuration" }, "/t:Build /p:Configuration=configuration")]
+        [InlineData(new string[] { "-r", "rid" }, "/t:Build /p:RuntimeIdentifier=rid")]
+        [InlineData(new string[] { "--runtime", "rid" }, "/t:Build /p:RuntimeIdentifier=rid")]
+        [InlineData(new string[] { "-c", "config" }, "/t:Build /p:Configuration=config")]
+        [InlineData(new string[] { "--configuration", "config" }, "/t:Build /p:Configuration=config")]
         [InlineData(new string[] { "--version-suffix", "mysuffix" }, "/t:Build /p:VersionSuffix=mysuffix")]
         [InlineData(new string[] { "--no-dependencies" }, "/t:Build /p:BuildProjectReferences=false")]
-        [InlineData(new string[] { "-v", "verbosity" }, "/t:Build /verbosity:verbosity")]
-        [InlineData(new string[] { "--verbosity", "verbosity" }, "/t:Build /verbosity:verbosity")]
-        [InlineData(new string[] { "--no-incremental", "-o", "myoutput", "-r", "myruntime", "-v", "diag" }, "/t:Rebuild /p:OutputPath=myoutput /p:RuntimeIdentifier=myruntime /verbosity:diag")]
+        [InlineData(new string[] { "-v", "diag" }, "/t:Build /verbosity:diag")]
+        [InlineData(new string[] { "--verbosity", "diag" }, "/t:Build /verbosity:diag")]
+        [InlineData(new string[] { "--no-incremental", "-o", "myoutput", "-r", "myruntime", "-v", "diag", "/ArbitrarySwitchForMSBuild" },
+                                  "/t:Rebuild /p:OutputPath=myoutput /p:RuntimeIdentifier=myruntime /verbosity:diag /ArbitrarySwitchForMSBuild")]
         public void MsbuildInvocationIsCorrect(string[] args, string expectedAdditionalArgs)
         {
             expectedAdditionalArgs = (string.IsNullOrEmpty(expectedAdditionalArgs) ? "" : $" {expectedAdditionalArgs}");
 
             var msbuildPath = "<msbuildpath>";
-            BuildCommand.FromArgs(args, msbuildPath)
-                .GetProcessStartInfo().Arguments.Should().Be($"{ExpectedPrefix}{expectedAdditionalArgs} {ExpectedSuffix}");
+            var command = BuildCommand.FromArgs(args, msbuildPath);
+
+            command.SeparateRestoreCommand.Should().BeNull();
+
+            command.GetProcessStartInfo()
+                   .Arguments.Should()
+                   .Be($"{ExpectedPrefix} /restore /clp:Summary{expectedAdditionalArgs}");
+        }
+
+        [Theory]
+        [InlineData(new string[] { "-f", "tfm" }, "/t:Restore", "/t:Build /p:TargetFramework=tfm")]
+        [InlineData(new string[] { "-o", "myoutput", "-f", "tfm", "-v", "diag", "/ArbitrarySwitchForMSBuild" },
+                                  "/t:Restore /p:OutputPath=myoutput /verbosity:diag /ArbitrarySwitchForMSBuild",
+                                  "/t:Build /p:OutputPath=myoutput /p:TargetFramework=tfm /verbosity:diag /ArbitrarySwitchForMSBuild")]
+        public void MsbuildInvocationIsCorrectForSeparateRestore(
+            string[] args, 
+            string expectedAdditionalArgsForRestore, 
+            string expectedAdditionalArgs)
+        {
+            expectedAdditionalArgs = (string.IsNullOrEmpty(expectedAdditionalArgs) ? "" : $" {expectedAdditionalArgs}");
+
+            var msbuildPath = "<msbuildpath>";
+            var command = BuildCommand.FromArgs(args, msbuildPath);
+
+            command.SeparateRestoreCommand.GetProcessStartInfo()
+                   .Arguments.Should()
+                   .Be($"{ExpectedPrefix} {expectedAdditionalArgsForRestore}");
+
+            command.GetProcessStartInfo()
+                   .Arguments.Should()
+                   .Be($"{ExpectedPrefix} /nologo /clp:Summary{expectedAdditionalArgs}");
+
         }
     }
 }

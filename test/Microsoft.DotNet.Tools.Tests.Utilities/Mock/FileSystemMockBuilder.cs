@@ -60,6 +60,7 @@ namespace Microsoft.Extensions.DependencyModel.Tests
         private class FileMock : IFile
         {
             private Dictionary<string, string> _files;
+            
             public FileMock(Dictionary<string, string> files)
             {
                 _files = files;
@@ -100,6 +101,11 @@ namespace Microsoft.Extensions.DependencyModel.Tests
             {
                 _files.Add(path, string.Empty);
             }
+
+            public void WriteAllText(string path, string content)
+            {
+                _files[path] = content;
+            }
         }
 
         private class DirectoryMock : IDirectory
@@ -131,6 +137,11 @@ namespace Microsoft.Extensions.DependencyModel.Tests
             public bool Exists(string path)
             {
                 return _files.Keys.Any(k => k.StartsWith(path));
+            }
+
+            public void CreateDirectory(string path)
+            {
+                _files.Add(path, path);
             }
         }
 

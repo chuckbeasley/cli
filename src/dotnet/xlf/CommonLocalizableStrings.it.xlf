@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="it" original="src/dotnet/CommonLocalizableStrings.resx">
+  <file datatype="xml" source-language="en" target-language="it" original="../CommonLocalizableStrings.resx">
     <body>
-      <group id="src/dotnet/CommonLocalizableStrings.resx" />
       <trans-unit id="CouldNotFindAnyProjectInDirectory">
         <source>Could not find any project in `{0}`.</source>
         <target state="translated">Non è stato trovato alcun progetto in `{0}`.</target>
@@ -96,11 +95,6 @@
       <trans-unit id="Application">
         <source>Application</source>
         <target state="translated">Applicazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ReferenceDoesNotExist">
-        <source>Reference {0} does not exist.</source>
-        <target state="translated">Il riferimento {0} non esiste.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceAddedToTheProject">
@@ -368,11 +362,6 @@
         <target state="translated">È necessario specificare almeno un riferimento da aggiungere.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ProjectAlreadyHasAReference">
-        <source>Project {0} already has a reference `{1}`.</source>
-        <target state="translated">Il progetto {0} include già un riferimento `{1}`.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PackageReferenceDoesNotExist">
         <source>Package reference `{0}` does not exist.</source>
         <target state="translated">Il riferimento al pacchetto `{0}` non esiste.</target>
@@ -550,12 +539,12 @@
       </trans-unit>
       <trans-unit id="SpecifiedNameExists">
         <source>Specified name {0} already exists. Please specify a different name.</source>
-        <target state="translated">Il nome specificato {0} esiste già. Specificare un nome diverso.</target>
+        <target state="translated">Il nome specificato {0} esiste già. Specificarne uno diverso.</target>
         <note />
       </trans-unit>
       <trans-unit id="SpecifiedAliasExists">
         <source>Specified alias {0} already exists. Please specify a different alias.</source>
-        <target state="translated">L'alias specificato {0} esiste già. Specificare un alias diverso.</target>
+        <target state="translated">L'alias specificato {0} esiste già. Specificarne uno diverso.</target>
         <note />
       </trans-unit>
       <trans-unit id="MandatoryParameterMissing">
@@ -605,9 +594,9 @@
       </trans-unit>
       <trans-unit id="ProjectCouldNotBeEvaluated">
         <source>Project `{0}` could not be evaluated. Evaluation failed with following error:
-{1}</source>
+{1}.</source>
         <target state="translated">Non è stato possibile valutare il progetto `{0}`. La valutazione non è riuscita. Errore:
-{1}</target>
+{1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedProjectType">
@@ -616,8 +605,8 @@
         <note />
       </trans-unit>
       <trans-unit id="InvalidSolutionFormatString">
-        <source>Invalid solution `{0}`. {1}</source>
-        <target state="translated">La soluzione `{0}` non è valida. {1}</target>
+        <source>Invalid solution `{0}`. {1}.</source>
+        <target state="translated">La soluzione `{0}` non è valida. {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentsProjectDescription">
@@ -631,13 +620,58 @@
         <note />
       </trans-unit>
       <trans-unit id="CmdSlnFile">
-        <source>&lt;SLN_FILE&gt;</source>
-        <target state="translated">&lt;FILE_SOLUZIONE&gt;</target>
+        <source>SLN_FILE</source>
+        <target state="translated">FILE_SOLUZIONE</target>
         <note />
       </trans-unit>
       <trans-unit id="CmdProjectFile">
-        <source>&lt;PROJECT&gt;</source>
-        <target state="translated">&lt;PROGETTO&gt;</target>
+        <source>PROJECT</source>
+        <target state="translated">PROGETTO</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidProjectWithExceptionMessage">
+        <source>Invalid project `{0}`. {1}.</source>
+        <target state="translated">Il progetto `{0}` non è valido. {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VerbosityOptionDescription">
+        <source>Set the verbosity level of the command. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic].</source>
+        <target state="translated">Consente di impostare il livello di dettaglio del comando. I valori consentiti sono: q[uiet], m[inimal], n[ormal], d[etailed], e diag[nostic].</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FrameworkOptionDescription">
+        <source>Target framework to publish for. The target framework has to be specified in the project file.</source>
+        <target state="translated">Framework di destinazione per cui eseguire la pubblicazione. Il framework di destinazione deve essere specificato nel file di progetto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuntimeOptionDescription">
+        <source>Publish the project for a given runtime. This is used when creating self-contained deployment. Default is to publish a framework-dependent app.</source>
+        <target state="translated">Consente di pubblicare il progetto per un runtime specificato. Viene usata durante la creazione della distribuzione indipendente. Per impostazione predefinita, viene pubblicata un'app dipendente dal framework.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigurationOptionDescription">
+        <source>Configuration to use for building the project.  Default for most projects is  "Debug".</source>
+        <target state="translated">Configurazione da usare per compilare il progetto. L'impostazione predefinita per la maggior parte dei progetti è "Debug".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CmdVersionSuffixDescription">
+        <source>Defines the value for the $(VersionSuffix) property in the project.</source>
+        <target state="translated">Consente di definire il valore per la proprietà $(VersionSuffix) nel progetto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShowHelpDescription">
+        <source>Show help information.</source>
+        <target state="translated">Visualizza la Guida.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoRestoreDescription">
+        <source>Does not do an implicit restore when executing the command.</source>
+        <target state="translated">Non esegue un ripristino implicito durante l'esecuzione del comando.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProjectRemovedFromTheSolution">
+        <source>Project `{0}` removed from the solution.</source>
+        <target state="translated">Il progetto `{0}` è stato rimosso dalla soluzione.</target>
         <note />
       </trans-unit>
     </body>
